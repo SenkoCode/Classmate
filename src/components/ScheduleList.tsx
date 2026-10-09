@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
-import { SectionList, Text, View, Animated, Dimensions } from 'react-native'; 
+import { SectionList, Text, View, Animated, Dimensions, StyleSheet } from 'react-native'; 
 import { WeekScheduleListProps } from '../types/models';
-import { globalStyles } from '../style/style';
+import { COLORS } from '../style/style';
 import { ScheduleItem } from '../types/models';
 import { CustomProgressBar } from './ProgressBar';
 import { isCurrentSchedule } from '../utils/utils';
@@ -45,12 +45,12 @@ const LessonCard = memo(({ item, needTracking, index }: LessonsCardProps) => {
           transform: [{ translateX: cardX }] 
         }}
       >
-        <View style={isActive ? globalStyles.card_active : globalStyles.card}>
-          <Text style={globalStyles.cardTextSubject}>{item.subject}</Text>
-          <Text style={globalStyles.cardTextTeacher}>{item.teacher}</Text>
-          <Text style={globalStyles.cardTextRoom}>{item.room}</Text>
+        <View style={isActive ? style.card_active : style.card}>
+          <Text style={style.cardTextSubject}>{item.subject}</Text>
+          <Text style={style.cardTextTeacher}>{item.teacher}</Text>
+          <Text style={style.cardTextRoom}>{item.room}</Text>
           {isActive && item.teacher ? <CustomProgressBar timeRange={item.time} /> : null}
-          <Text style={globalStyles.cardTextTime}>{item.time}</Text>
+          <Text style={style.cardTextTime}>{item.time}</Text>
         </View>
       </Animated.View>
     );
@@ -65,12 +65,12 @@ export const ScheduleList = memo(({ weekData, needTracking }: WeekScheduleListPr
         sections={weekData}
         keyExtractor={(item) => item.id.toString()}
         stickySectionHeadersEnabled={true} 
-        contentContainerStyle={globalStyles.listContent}
+        contentContainerStyle={style.listContent}
         showsVerticalScrollIndicator={false}
         
         renderSectionHeader={({ section: { title } }) => (
           <View>
-            <Text style={globalStyles.cardHeader}>{title}</Text>
+            <Text style={style.cardHeader}>{title}</Text>
           </View>
         )}
         
@@ -84,3 +84,82 @@ export const ScheduleList = memo(({ weekData, needTracking }: WeekScheduleListPr
 });
 
 ScheduleList.displayName = 'ScheduleList';
+
+const style = StyleSheet.create({
+    headerTextDayOfWeek : {
+        textAlign : 'center',
+        fontSize : 18,
+        paddingTop : 6,
+        color : COLORS.text_primary
+    },
+        card : {
+        paddingBottom : 10,
+
+        marginTop : 5,
+        marginLeft : 20,
+        marginRight : 20,
+        marginBottom : 10,
+
+        backgroundColor : COLORS.background_card,
+        borderRadius : 23,
+        borderColor : COLORS.border,
+        borderWidth : 1,
+        shadowColor: COLORS.border,
+        elevation: 5,
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+    },
+    card_active : {
+
+        marginTop : 10,
+        marginLeft : 20,
+        marginRight : 20,
+
+        backgroundColor : COLORS.background_card,
+        borderRadius : 23,
+        borderColor : COLORS.border_active,
+        borderWidth : 2,
+        shadowColor: COLORS.border_active,
+        elevation: 5,
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+    },
+    cardHeader : {
+        textAlign : 'center',
+        color : COLORS.text_primary,
+        paddingTop : 7,
+        paddingBottom : 7,
+        fontSize : 18
+    },
+    cardTextSubject : {
+        color : COLORS.text_primary,
+        fontSize : 16,
+
+        paddingTop : 10,
+        paddingHorizontal :20,
+
+        paddingBottom : 5
+    },
+    cardTextTeacher : {
+        paddingHorizontal :20,
+        color : COLORS.text_primary,
+        fontSize : 15
+    },
+    cardTextRoom : {
+        paddingHorizontal :20,
+        color : COLORS.text_primary,
+        fontSize : 15
+    },
+    cardTextTime : {
+        paddingHorizontal :20,
+        color : COLORS.text_secondary,
+        marginTop : 2,
+        fontSize : 15
+    },
+    listContent : {
+        paddingHorizontal: 8,
+        paddingBottom: 30,
+    },
+});

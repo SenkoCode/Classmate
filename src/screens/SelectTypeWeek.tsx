@@ -20,7 +20,7 @@ export default function SelectTypeWeek() {
             colors={['#0f172a', '#4338ca']} // Ваши цвета из CSS (темно-синий и фиолетовый)
             start={{ x: 0, y: 0 }}          // Верхний левый угол (аналог 148deg)
             end={{ x: 1, y: 1 }}            // Правый нижний угол
-            style = {globalStyles.container}>
+            style = {style.container}>
         <SafeAreaView>
             <Text style = { style.header }>Выберите тип недели</Text>
             <TouchableOpacity style = { style.button } onPress={() => {
@@ -71,5 +71,8 @@ const style = StyleSheet.create({
             marginHorizontal : 22,
             fontSize : 23,
             marginVertical : 20
-        }
+        },
+                container : {
+        flex : 1
+    },
 });

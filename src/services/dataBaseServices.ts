@@ -5,16 +5,11 @@ export class DataBaseService {
     private db: SQLLite.SQLiteDatabase | null = null;
     private initPromise: Promise<void> | null = null;
 
-    // Очередь операций (хранит промис, который завершается после выполнения текущей операции)
     private operationQueue: Promise<void> = Promise.resolve();
 
-    // Метод для постановки операции в очередь (возвращает результат операции)
     private enqueueOperation<T>(operation: () => Promise<T>): Promise<T> {
-        // Ждём завершения предыдущей операции, затем выполняем новую
         const currentOperation = this.operationQueue.then(() => operation());
-        // Обновляем очередь: дожидаемся завершения текущей операции, но не сохраняем её результат
         this.operationQueue = currentOperation.then(() => {});
-        // Возвращаем промис с результатом операции
         return currentOperation;
     }
 
@@ -59,7 +54,6 @@ export class DataBaseService {
         return this.db;
     }
 
-    // Вставка занятий (через очередь)
     public async insertLessions(lessons: Omit<DataBaseScheduleItem, "id">[]): Promise<void> {
         return this.enqueueOperation(async () => {
             const database = await this.getDbInstance();
@@ -84,7 +78,6 @@ export class DataBaseService {
         });
     }
 
-    // Чтение данных (без очереди, т.к. они не конфликтуют с транзакциями)
     public async getLessons(day: string, currentWeek: 'upper' | 'lower'): Promise<DataBaseScheduleItem[]> {
         const database = await this.getDbInstance();
         const query = `
@@ -105,7 +98,6 @@ export class DataBaseService {
         return await database.getAllAsync<DataBaseScheduleItem>(query, [currentWeek]);
     }
 
-    // Очистка базы данных (через очередь)
     public async clearDatabase(): Promise<void> {
         return this.enqueueOperation(async () => {
             const database = await this.getDbInstance();

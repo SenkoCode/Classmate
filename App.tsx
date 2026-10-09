@@ -3,18 +3,18 @@ import { NavigationContainer, useFocusEffect} from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import ScheduleToDay from './src/screens/ScheduleToDay';
 import ScheduleWeekly from './src/screens/ScheduleWeekly';
 import SettingsPage from './src/screens/SettingsPage';
 import WelcomePage from './src/screens/WelcomePage';
+import ScheduleNextDay from './src/screens/ScheduleNextDay';
 
 import { BottomTabParramList } from './src/navigation/types';
 import { COLORS }  from './src/style/style'
 
-import { loadAppSettings } from './src/utils/settingsManager'; 
-
-import { DatabaseProvider, useDatabase } from './src/components/DatabaseContex';
+import { DatabaseProvider } from './src/components/DatabaseContex';
 
 import SelectGroup from './src/screens/SelectGroup';
 import SelectTypeWeek from './src/screens/SelectTypeWeek';
@@ -31,7 +31,7 @@ function MainRoot() {
           initialRouteName="ScheduleToDay"
           screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarActiveTintColor: COLORS.text_secondary,   // Цвет активной вкладки
+          tabBarActiveTintColor: "#6366F1",
           tabBarInactiveTintColor: COLORS.text_primary,
           tabBarStyle: { paddingBottom: 40, paddingTop : 8, height:80, backgroundColor : COLORS.secondary}, 
           headerStyle: { backgroundColor: COLORS.secondary },   
@@ -43,7 +43,11 @@ function MainRoot() {
 
             if (route.name === 'ScheduleToDay') {
               iconName = focused ? 'time' : 'time-outline';
-            } else if (route.name === 'ScheduleWeekly') {
+            } 
+            else if (route.name === "ScheduleNextDay") {
+              iconName = focused ? 'arrow-forward-circle' : 'arrow-forward-circle-outline'
+            }
+            else if (route.name === 'ScheduleWeekly') {
               iconName = focused ? 'calendar' : 'calendar-outline';
             } else if (route.name === 'SettingsPage') {
               iconName = focused ? 'settings' : 'settings-outline';
@@ -59,6 +63,12 @@ function MainRoot() {
             component={ScheduleToDay} 
             options={{ title: 'Сегодня' }} 
           />
+
+        <Tab.Screen
+          name = "ScheduleNextDay"
+          component={ ScheduleNextDay }
+          options={{title : 'Завтра'}}
+        />
 
           <Tab.Screen 
             name="ScheduleWeekly" 
@@ -82,7 +92,7 @@ export default function App() {
 
   useEffect(() => {
     checkFirstStart();
-  }, [checkFirstStart]);
+  }, [isFirstStart]);
 
   if (isShowLoadingPage) {
     return <LoadingPage />;

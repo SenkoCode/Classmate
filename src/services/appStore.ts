@@ -15,10 +15,13 @@ interface ScheduleState {
     dateLast : string | null,
     setDateLast : (date : string) => void,
     typeWeek : WeekType,
+    isChangedTypeWeek : boolean,
+    setIsChangedTypeWeek : (flag : boolean) => void; 
     setTypeWeek : ( newCase : "current" | "lower" | "upper")  => void;
 
     schedulesToDay : ScheduleListProps[];
     scheduleWeekly : ScheduleListProps[];
+    scheduleNextDay : ScheduleListProps[],
 
     isLoading : boolean;
     isLoaded : boolean;
@@ -46,56 +49,68 @@ export const useAppStore = create<ScheduleState>((set, get) => ({
     setDateLast : (date : string) => set({dateLast : date}),
 
     typeWeek : getTypeWeek(),
+    isChangedTypeWeek : false,
+    setIsChangedTypeWeek(flag) {
+        set({isChangedTypeWeek : flag})
+    },
+
     setTypeWeek : (newCase : "current" | "lower" | "upper") => {
         if (newCase == "current")
         {
+            set({isChangedTypeWeek : false});
             newCase = getTypeWeek();
         }
-        console.log('Changed type week: ' + newCase);
+        else{
+            set({isChangedTypeWeek : true});
+        }
         set({typeWeek : newCase})
     },
 
     schedulesToDay : [], // пары на сегодня
     scheduleWeekly : [], // пары на неделю
+    scheduleNextDay : [],
     isLoading : false,
     isLoaded : false,
 
     db : null,
     setDbInstance : ( dbInstance : DataBaseService ) => {if (get().db == null) set({db : dbInstance})},
 
-    fetchSchedules : async () => {
+        fetchSchedules : async () => {
         try {
             const db = get().db;
             if (!db) return;
-            const todayStr = new Date().toDateString();
-            if (get().isLoaded && get().dateLast != todayStr)
-
+            
             if (get().isLoading) return;
             
-             set({ 
+            const todayStr = new Date().toDateString();
+
+            set({ 
                 isLoading: true, 
-                schedulesToDay: [], 
-                scheduleWeekly: [],
                 dateLast : todayStr
             });
 
             const date = getDayNumber();
 
+            // 1. Сначала запрашиваем и отображаем только СЕГОДНЯ (быстрый рендер)
             const dataToDay = await db.getLessons(date.toString(), get().typeWeek);
             const schedulesToDay = transformDbToUiSchedule(dataToDay);
+            set({ schedulesToDay : schedulesToDay });
 
-            set({schedulesToDay : schedulesToDay});
+            // 2. Затем запрашиваем ЗАВТРА
+            const dataNextDate = await db.getLessons((date + 1).toString(), get().typeWeek);
+            const scheduleNextDay = transformDbToUiSchedule(dataNextDate);
+            set({ scheduleNextDay : scheduleNextDay });
 
+            // 3. В самую последнюю очередь грузим тяжелую НЕДЕЛЮ
             const dataWeekly = await db.getLessonsWeek(get().typeWeek);   
             const schedulesWeekly = transformDbToUiSchedule(dataWeekly);
-
-            set({scheduleWeekly : schedulesWeekly});
+            set({ scheduleWeekly : schedulesWeekly, isLoaded: true });
         }
-        catch {
-
+        catch (error) {
+            console.error("Ошибка загрузки расписания:", error);
         }
         finally {
-            set({isLoading : false});
+            set({ isLoading : false });
         }
     },
 }));

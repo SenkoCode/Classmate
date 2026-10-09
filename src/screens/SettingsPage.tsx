@@ -21,6 +21,7 @@ import { useAppStore } from "../services/appStore";
 export default function SettingsPage() {
     const navigation = useNavigation<any>();
     const setIsShowLoadingPage = useAppStore((state) => state.setIsShowLoadingPage);
+    const checkFirstStart = useAppStore((state) => state.checkFirstStart);
     const [getSettings, setSettings] = useState<Settings>();
 
     useEffect(() => {
@@ -36,13 +37,20 @@ export default function SettingsPage() {
             colors={['#0f172a', '#4338ca']} // Ваши цвета из CSS (темно-синий и фиолетовый)
             start={{ x: 0, y: 0 }}          // Верхний левый угол (аналог 148deg)
             end={{ x: 1, y: 1 }}            // Правый нижний угол
-            style = {globalStyles.container}>
+            style = {style.container}>
             <SafeAreaView>
                 <Text style = {style.header}>Настройки</Text>
-                <TouchableOpacity style = {style.button} onPress = {async () => {
-                    await setIsShowLoadingPage(true);
-                    await updateSchedulesDatabase();
-                    await setIsShowLoadingPage(false);
+                <TouchableOpacity style = {style.button} onPress = {() => {
+                     setIsShowLoadingPage(true);
+                    setTimeout(async () => {
+                        try {
+                            await updateSchedulesDatabase();
+                        } catch (error) {
+                            console.error("Ошибка обновления БД:", error);
+                        } finally {
+                            setIsShowLoadingPage(false);
+                        }
+                    }, 50);
                 }}>
                     <Text style = {style.buttonText}>Обновить таблицу</Text>
                     <Ionicons name="refresh" size={26} color="#fff"/>
@@ -64,6 +72,7 @@ export default function SettingsPage() {
 
                 <TouchableOpacity style = {style.button} onPress = {() => {
                     saveAppSettigns("", new Date(), "");
+                    checkFirstStart();
                 }}>
                     <Text style = {style.buttonText}>Измененить группу</Text>
                     <Ionicons name="people" size={26} color="#fff"/>
@@ -104,5 +113,8 @@ const style = StyleSheet.create({
             marginHorizontal : 22,
             fontSize : 23,
             marginVertical : 20
-        }
+        },
+        container : {
+            flex : 1
+        },
 });

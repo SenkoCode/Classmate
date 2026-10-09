@@ -22,12 +22,9 @@ export async function updateSchedulesDatabase()
   await downloadScheduleFile();
   const settings = await loadAppSettings();
   const group = settings.group ?? 'Нету';
-  console.log(group);
   const letter = await findColumnLetterByValue(group);
-  console.log(letter);
   if (letter)
   {
-    console.log(letter);
     await getLessonsFromXlsx(letter);
   }
 }
@@ -83,6 +80,23 @@ export const getRowDataFromXlsx = async (
   }
 };
 
+// 1. Выносим логику в компактную функцию-парсер
+function parseLesson(rawText: string) {
+  const parts = rawText.split(/\n|\s{3,}/).map(s => s.trim()).filter(Boolean);
+  
+  if (!parts.length) return { subject: "Нету пары", teacher: "", room: "" };
+
+  const subject = parts[0];
+  const rooms = parts.slice(1).filter(p => /(каб|ауд|\d+)/i.test(p));
+  const teachers = parts.slice(1).filter(p => !/(каб|ауд|\d+)/i.test(p));
+
+  return {
+    subject,
+    teacher: teachers.join(', '),
+    room: rooms.join(', ')
+  };
+}
+
 async function getLessonsFromXlsx(letter : string)
 {
   const dataFromXlsx = await parseVerticalColumn(letter);
@@ -95,100 +109,38 @@ async function getLessonsFromXlsx(letter : string)
 
     if (currentCell)
     {
-      const currentCellText = currentCell.text
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-
       const weekOfDay = DAY_RANGES.find(range => currentCell.row >= range.startRow && currentCell.row <= range.endRow)!;
       const lesson_number = Math.floor((currentCell.row - weekOfDay.startRow) / 2) + 1;
       const weekType = currentCell.isMerged ? "both" : "upper"; 
 
-      if (currentCellText.length >= 3)
-      {
-        const currentSchedule : Omit<DataBaseScheduleItem, "id"> = {
-          subject : currentCellText[0].trim(),
-          room : currentCellText[currentCellText.length - 1].trim(),
-          teacher : currentCellText.slice(1, -1).join(' ').trim(),
-          day_of_week : weekOfDay ? weekOfDay.day : -1,
-          lesson_number : lesson_number,
-          week_type : weekType
-        }
-        dataForDataBase.push(currentSchedule);
-      }
-      else if (currentCellText.length >= 2)
-      {
-          const currentSchedule : Omit<DataBaseScheduleItem, "id"> = {
-            subject : currentCellText[0].trim(),
-            week_type : weekType,
-            lesson_number : lesson_number,
-            teacher: currentCellText.slice(1).join(' ').trim(),
-            room : "",
-            day_of_week : weekOfDay ? weekOfDay.day : -1
-        }     
-        dataForDataBase.push(currentSchedule);
-      }
-      else
-      {
-        const currentSchedule : Omit<DataBaseScheduleItem, "id"> = {
-          subject : "Нету пары",
-          room : "",
-          teacher : "",
-          day_of_week : weekOfDay ? weekOfDay.day : -1,
-          lesson_number : lesson_number,
-          week_type : weekType
-        }
-        dataForDataBase.push(currentSchedule);
-      }
+      const { subject, teacher, room } = parseLesson(currentCell.text);
+
+      dataForDataBase.push({
+        subject,
+        teacher,
+        room,
+        day_of_week: weekOfDay ? weekOfDay.day : -1,
+        lesson_number,
+        week_type: weekType
+      });
     }
 
     if (nextCell && !currentCell.isMerged)
     {
-      const nextCellText = nextCell.text
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-
       const weekOfDay = DAY_RANGES.find(range => currentCell.row >= range.startRow && currentCell.row <= range.endRow)!;
       const lesson_number = Math.floor((currentCell.row - weekOfDay.startRow) / 2) + 1;
       const weekType = currentCell.isMerged ? "both" : "lower"; 
 
-      if (nextCellText.length >= 3)
-      {
-        const currentSchedule : Omit<DataBaseScheduleItem, "id"> = {
-          subject : nextCellText[0].trim(),
-          room : nextCellText[nextCellText.length - 1].trim(),
-          teacher : nextCellText.slice(1, -1).join(' ').trim(),
-          day_of_week : weekOfDay ? weekOfDay.day : -1,
-          lesson_number : lesson_number,
-          week_type : weekType
-        }
-        dataForDataBase.push(currentSchedule);
-      }
-      else if (nextCellText.length >= 2)
-      {
-        const currentSchedule : Omit<DataBaseScheduleItem, "id"> = {
-          subject : nextCellText[0].trim(),
-          week_type : weekType,
-          lesson_number : lesson_number,
-          teacher: nextCellText.slice(1).join(' ').trim(),
-          room : "",
-          day_of_week : weekOfDay ? weekOfDay.day : -1
-        }     
-        dataForDataBase.push(currentSchedule);
-      }
-      else
-      {
-        const currentSchedule : Omit<DataBaseScheduleItem, "id"> = {
-          subject : "Нету пары",
-          room : "",
-          teacher : "",
-          day_of_week : weekOfDay ? weekOfDay.day : -1,
-          lesson_number : lesson_number,
-          week_type : weekType
-        }
-        dataForDataBase.push(currentSchedule);
-      }
+      const { subject, teacher, room } = parseLesson(nextCell.text);
+      dataForDataBase.push({
+        subject,
+        teacher,
+        room,
+        day_of_week: weekOfDay ? weekOfDay.day : -1,
+        lesson_number,
+        week_type: weekType
+      });
+
     }
   }
   dbService.clearDatabase();
@@ -310,7 +262,7 @@ async function parseVerticalColumn(targetLetter: string) {
 
 async function downloadScheduleFile(): Promise<string> {
   const settings = await loadAppSettings();
-  if (settings.url == null) return "";
+
   const {id, gid} = extractGoogleSheetsInfo(settings.url);
   if (id == null) return "";
 

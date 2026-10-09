@@ -1,6 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { globalStyles } from "../style/style";
+import { COLORS, globalStyles } from "../style/style";
 import { useState } from "react";
 import { KeyboardAvoidingView, View, TextInput, TouchableOpacity, Text, Platform, StyleSheet } from "react-native";
 import { isGoogleSheetsUrl } from "../utils/utils";
@@ -16,19 +15,30 @@ export default function InputURLTablePage() {
     const [text, setText] = useState('');
     const [isFocused, setIsFocused] = useState(false);
 
-    const url = "https://docs.google.com/spreadsheets/d/1aUdgTonuua6JZHEFojLeo_jtSd1AO-1K/edit?gid=1197657310#gid=1197657310"
+    const url = "https://docs.google.com/spreadsheets/d/1aUdgTonuua6JZHEFojLeo_jtSd1AO-1K/edit?gid=1197657310#gid=1197657310";
 
-    const handleSubmit = async () => {
+    const handleSubmit = () => {
         if (isGoogleSheetsUrl(text))
         {
-            await setIsShowLoadingPage(true);
-            const settings = await loadAppSettings();
-            if (settings.lastUpdate == null) 
-                settings.lastUpdate = "";
-            saveAppSettigns(settings.group, settings.lastUpdate, text);
-            updateSchedulesDatabase();
-            await setIsShowLoadingPage(false);
-            navigation.goBack();
+            setIsShowLoadingPage(true);
+            setTimeout(async () => {
+                try
+                {
+                    const settings = await loadAppSettings();
+                    if (settings.lastUpdate == null) 
+                        settings.lastUpdate = "";
+                    saveAppSettigns(settings.group, settings.lastUpdate, text);
+                    await updateSchedulesDatabase();
+                }
+                catch
+                {
+
+                }
+                finally {
+                    setIsShowLoadingPage(false);
+                    navigation.goBack();
+                }
+            }, 50)
         }
         else {
             Alert.alert("Ошибка", "Неверный формат URL.", [{text : "Ок"}])
@@ -40,7 +50,7 @@ export default function InputURLTablePage() {
             colors={['#0f172a', '#4338ca']} // Ваши цвета из CSS (темно-синий и фиолетовый)
             start={{ x: 0, y: 0 }}          // Верхний левый угол (аналог 148deg)
             end={{ x: 1, y: 1 }}            // Правый нижний угол
-            style = {globalStyles.container}>
+            style = {styles.container}>
             <KeyboardAvoidingView 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.container}>

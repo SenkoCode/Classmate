@@ -9,6 +9,7 @@ import { ScheduleList } from "../components/ScheduleList";
 import { getTypeWeekText } from "../utils/utils";
 import { useAppStore } from "../services/appStore";
 import { useDatabase } from "../components/DatabaseContex";
+import { StyleSheet } from "react-native";
 
 export default function ScheduleToDay () {
     const lesson = useAppStore((state) => state.schedulesToDay);
@@ -23,24 +24,29 @@ export default function ScheduleToDay () {
     useFocusEffect(
         useCallback(() => {
             fetchSchedules();
-        }, [fetchSchedules])
+        }, [fetchSchedules, typeWeek])
     );
 
     useEffect(() => {
         setDbInstance(db);
-        fetchSchedules();
-    }, [db, typeWeek])
+    }, [db, setDbInstance])
 
     return (
         <LinearGradient                 
             colors={['#0f172a', '#4338ca']} // Ваши цвета из CSS (темно-синий и фиолетовый)
             start={{ x: 0, y: 0 }}          // Верхний левый угол (аналог 148deg)
             end={{ x: 1, y: 1 }}            // Правый нижний угол
-            style = {globalStyles.container}>
-            <SafeAreaView style = {globalStyles.container}>
+            style = {style.container}>
+            <SafeAreaView style = {style.container}>
                 <Header text="Сегодня" typeWeek={weekTypeText}/>
                 <ScheduleList weekData={lesson} needTracking = { true }/>
             </SafeAreaView>
         </LinearGradient>
     )
 }
+
+const style = StyleSheet.create({
+        container : {
+        flex : 1
+    },
+});

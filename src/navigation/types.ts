@@ -2,4 +2,5 @@ export type BottomTabParramList = {
     ScheduleToDay : undefined;
     ScheduleWeekly : undefined;
     SettingsPage : undefined;
+    ScheduleNextDay : undefined;
 };

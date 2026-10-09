@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { FlatList, Text, TextInput, TouchableOpacity } from "react-native"
+import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity } from "react-native"
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
-import { COLORS, globalStyles } from "../style/style";
-import { getRowDataFromXlsx } from "../services/googleSheetsParser";
+import { COLORS } from "../style/style";
+import { getRowDataFromXlsx, updateSchedulesDatabase } from "../services/googleSheetsParser";
 import LoadingPage from "./LoadingPage";
 import { saveAppSettigns } from "../utils/settingsManager";
 import { LinearGradient } from "expo-linear-gradient";
@@ -62,11 +62,11 @@ export default function SelectGroup() {
                     colors={['#0f172a', '#4338ca']} // Ваши цвета из CSS (темно-синий и фиолетовый)
                     start={{ x: 0, y: 0 }}          // Верхний левый угол (аналог 148deg)
                     end={{ x: 1, y: 1 }}            // Правый нижний угол
-                    style = {globalStyles.container}>
-        <SafeAreaView style = { globalStyles.container }>
-            <Text style = { globalStyles.headerSelectionGroup }>Выберите группу</Text>
+                    style = {style.container}>
+        <SafeAreaView style = { style.container }>
+            <Text style = { style.headerSelectionGroup }>Выберите группу</Text>
             <TextInput
-                style = { globalStyles.searchInput }
+                style = { style.searchInput }
                 placeholder="Поиск группы..."
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -76,41 +76,124 @@ export default function SelectGroup() {
                 placeholderTextColor={COLORS.text_primary}
             />
             <FlatList
-            style = {globalStyles.listContent}
+            style = {style.listContent}
             data={filteredItem}
             keyExtractor={(item) => item.id}
             renderItem={({item}) => (
                 <TouchableOpacity
                 style = {[
-                    globalStyles.itemCard,
-                    selectedItem?.id === item.id && globalStyles.selectedCard
+                    style.itemCard,
+                    selectedItem?.id === item.id && style.selectedCard
                 ]}
                 onPress={() => handleOnPreesed(item)}
                 activeOpacity={0.7}>
-                    <Text style = { globalStyles.itemText }>{item.name}</Text>
+                    <Text style = { style.itemText }>{item.name}</Text>
                 </TouchableOpacity>
             )}
             numColumns={2}
-            columnWrapperStyle={globalStyles.columnWrapper}
-            contentContainerStyle={globalStyles.listContent}
+            columnWrapperStyle={style.columnWrapper}
+            contentContainerStyle={style.listContent}
             ListEmptyComponent={
-                <Text style={globalStyles.emptyText}>
+                <Text style={style.emptyText}>
                     {searchQuery ? 'Ничего не найдено' : 'Нет доступных групп'}
                 </Text>
                 }
             showsVerticalScrollIndicator={false}
       />
-      <TouchableOpacity style = { globalStyles.welcome_Button} onPress={() => {
+      <TouchableOpacity style = {style.welcome_Button} onPress={async () => {
         if (selectedItem) {
             const group = selectedItem.name; 
             const now = new Date();
-            saveAppSettigns(group, now);
-            checkFirstStart();
+            await saveAppSettigns(group, now, "");
+            await setIsLoading(true);
+            await updateSchedulesDatabase();
+            await setIsLoading(false);
+            await checkFirstStart();
         }
       }}>
-        <Text style = {globalStyles.welcome_Button_Text}>Выбрать</Text>
+        <Text style = {style.welcome_Button_Text}>Выбрать</Text>
       </TouchableOpacity>
         </SafeAreaView>
         </LinearGradient>
     );
 }
+
+const style = StyleSheet.create({
+        welcome_Button : {
+        alignItems : "center",
+        backgroundColor : COLORS.text_secondary,
+        justifyContent : "flex-end",
+        padding : 10,
+        margin : 15,
+        width : 150,
+        alignSelf : "flex-end",
+        borderRadius : 15
+    },
+    welcome_Button_Text : {
+        color : COLORS.text_primary,
+        fontSize : 16,
+    },
+    container : {
+        flex : 1
+    },
+      searchInput: {
+    height: 48,
+    margin: 20,
+    paddingHorizontal: 20,
+    backgroundColor: COLORS.background_card,
+    color : COLORS.text_primary,
+    borderRadius: 10,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  columnWrapper: {
+    justifyContent: 'space-between',
+    marginHorizontal: 4,
+  },
+  itemCard: {
+    flex: 1 / 2,
+    maxWidth: '50%',
+    backgroundColor: COLORS.background_card,
+    borderRadius: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 10,
+    margin: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 2,
+    borderWidth : 1,
+    borderColor : COLORS.border,
+    shadowColor: COLORS.border,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    minHeight: 60,
+  },
+  selectedCard: {
+    backgroundColor: COLORS.selection_background_card,
+    borderWidth: 3,
+  },
+  itemText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.text_primary,
+    textAlign: 'center',
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 40,
+    fontSize: 16,
+    color: '#888',
+  },
+  headerSelectionGroup : {
+    color : '#ffffff',
+    fontSize : 20,
+    fontWeight : "bold",
+    paddingLeft : 20
+  },
+    listContent : {
+        paddingHorizontal: 8,
+        paddingBottom: 30,
+    },
+});

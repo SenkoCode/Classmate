@@ -7,7 +7,7 @@ const KEYS = {
     URL : 'url'
 };
 
-export const saveAppSettigns = async (group : string, date : Date, url : string) => {
+export const saveAppSettigns = async (group : string, date : Date | string, url : string) => {
     try
     {
         await AsyncStorage.setItem(KEYS.GROUP, group);
@@ -24,18 +24,18 @@ export const loadAppSettings = async () : Promise<Settings> =>
         const lastUpdate = await AsyncStorage.getItem(KEYS.LAST_UPDATE);
         const url = await AsyncStorage.getItem(KEYS.URL);
         const data : Settings = {
-            group : group || null,
+            group : group || "",
             lastUpdate : lastUpdate || null,
-            url : url || null, 
+            url : url || "https://docs.google.com/spreadsheets/d/1aUdgTonuua6JZHEFojLeo_jtSd1AO-1K/edit?gid=1197657310#gid=1197657310",
         };
         return data
     }
     catch
     {
         const data : Settings = {
-            group : null,
+            group : "",
             lastUpdate : null,
-            url : null
+            url : ""
         };
         return data
     }
