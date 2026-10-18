@@ -6,111 +6,136 @@ import { DataBaseService } from "./dataBaseServices";
 import { loadAppSettings } from "../utils/settingsManager";
 
 interface ScheduleState {
-    isShowLoadingPage : boolean,
-    setIsShowLoadingPage : (newState : boolean) => Promise<void>;
+  isShowLoadingPage: boolean;
+  setIsShowLoadingPage: (newState: boolean) => Promise<void>;
 
-    isFirstStart : boolean,
-    checkFirstStart : () => Promise<void>,
+  isFirstStart: boolean;
+  checkFirstStart: () => Promise<void>;
 
-    dateLast : string | null,
-    setDateLast : (date : string) => void,
-    typeWeek : WeekType,
-    isChangedTypeWeek : boolean,
-    setIsChangedTypeWeek : (flag : boolean) => void; 
-    setTypeWeek : ( newCase : "current" | "lower" | "upper")  => void;
+  dateLast: string | null;
+  setDateLast: (date: string) => void;
 
-    schedulesToDay : ScheduleListProps[];
-    scheduleWeekly : ScheduleListProps[];
-    scheduleNextDay : ScheduleListProps[],
+  tommor: Date;
+  typeWeekToDay: WeekType;
+  typeWeekNextDay: WeekType;
+  isChangedTypeWeek: boolean;
+  setIsChangedTypeWeek: (flag: boolean) => void;
+  setTypeWeek: (newCase: "current" | "lower" | "upper") => void;
 
-    isLoading : boolean;
-    isLoaded : boolean;
+  schedulesToDay: ScheduleListProps[];
+  scheduleWeekly: ScheduleListProps[];
+  scheduleNextDay: ScheduleListProps[];
 
-    db : null | DataBaseService;
-    setDbInstance : (dbInstance : DataBaseService) => void;
+  isLoading: boolean;
+  isLoaded: boolean;
 
-    fetchSchedules : () => Promise<void>;
+  db: null | DataBaseService;
+  setDbInstance: (dbInstance: DataBaseService) => void;
+
+  fetchSchedules: () => Promise<void>;
 }
 
-export const useAppStore = create<ScheduleState>((set, get) => ({
-    isShowLoadingPage : false,
-    setIsShowLoadingPage : async (newState : boolean) => set({isShowLoadingPage : newState}),
+export const useAppStore = create<ScheduleState>((set, get) => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-    isFirstStart : false,
-    checkFirstStart : async () => {
-        const settings = await loadAppSettings();
-        if (settings.group && settings.lastUpdate) 
-            set({isFirstStart : false});
-        else 
-            set({isFirstStart : true});
+  return {
+    isShowLoadingPage: false,
+    setIsShowLoadingPage: async (newState: boolean) =>
+      set({ isShowLoadingPage: newState }),
+
+    isFirstStart: false,
+    checkFirstStart: async () => {
+      const settings = await loadAppSettings();
+      if (settings.group && settings.lastUpdate) set({ isFirstStart: false });
+      else set({ isFirstStart: true });
     },
 
-    dateLast : null,
-    setDateLast : (date : string) => set({dateLast : date}),
+    dateLast: null,
+    setDateLast: (date: string) => set({ dateLast: date }),
 
-    typeWeek : getTypeWeek(),
-    isChangedTypeWeek : false,
+    tommor: tomorrow,
+    typeWeekToDay: getTypeWeek(),
+    typeWeekNextDay: getTypeWeek(tomorrow),
+    isChangedTypeWeek: false,
     setIsChangedTypeWeek(flag) {
-        set({isChangedTypeWeek : flag})
+      set({ isChangedTypeWeek: flag });
     },
 
-    setTypeWeek : (newCase : "current" | "lower" | "upper") => {
-        if (newCase == "current")
-        {
-            set({isChangedTypeWeek : false});
-            newCase = getTypeWeek();
-        }
-        else{
-            set({isChangedTypeWeek : true});
-        }
-        set({typeWeek : newCase})
+    setTypeWeek: (newCase: "current" | "lower" | "upper") => {
+      if (newCase == "current") {
+        set({
+          isChangedTypeWeek: false,
+          typeWeekToDay: getTypeWeek(),
+          typeWeekNextDay: getTypeWeek(tomorrow),
+        });
+      } else {
+        set({
+          isChangedTypeWeek: true,
+          typeWeekToDay: newCase,
+          typeWeekNextDay: newCase,
+        });
+      }
     },
 
-    schedulesToDay : [], // пары на сегодня
-    scheduleWeekly : [], // пары на неделю
-    scheduleNextDay : [],
-    isLoading : false,
-    isLoaded : false,
+    // setTypeWeek: (newCase: "current" | "lower" | "upper") => {
+    //   if (newCase == "current") {
+    //     set({ isChangedTypeWeek: false });
+    //     newCase = getTypeWeek();
+    //   } else {
+    //     set({ isChangedTypeWeek: true });
+    //   }
+    //   set({ typeWeekToDay: newCase });
+    // },
 
-    db : null,
-    setDbInstance : ( dbInstance : DataBaseService ) => {if (get().db == null) set({db : dbInstance})},
+    schedulesToDay: [],
+    scheduleWeekly: [],
+    scheduleNextDay: [],
+    isLoading: false,
+    isLoaded: false,
 
-        fetchSchedules : async () => {
-        try {
-            const db = get().db;
-            if (!db) return;
-            
-            if (get().isLoading) return;
-            
-            const todayStr = new Date().toDateString();
-
-            set({ 
-                isLoading: true, 
-                dateLast : todayStr
-            });
-
-            const date = getDayNumber();
-
-            // 1. Сначала запрашиваем и отображаем только СЕГОДНЯ (быстрый рендер)
-            const dataToDay = await db.getLessons(date.toString(), get().typeWeek);
-            const schedulesToDay = transformDbToUiSchedule(dataToDay);
-            set({ schedulesToDay : schedulesToDay });
-
-            // 2. Затем запрашиваем ЗАВТРА
-            const dataNextDate = await db.getLessons((date + 1).toString(), get().typeWeek);
-            const scheduleNextDay = transformDbToUiSchedule(dataNextDate);
-            set({ scheduleNextDay : scheduleNextDay });
-
-            // 3. В самую последнюю очередь грузим тяжелую НЕДЕЛЮ
-            const dataWeekly = await db.getLessonsWeek(get().typeWeek);   
-            const schedulesWeekly = transformDbToUiSchedule(dataWeekly);
-            set({ scheduleWeekly : schedulesWeekly, isLoaded: true });
-        }
-        catch (error) {
-            console.error("Ошибка загрузки расписания:", error);
-        }
-        finally {
-            set({ isLoading : false });
-        }
+    db: null,
+    setDbInstance: (dbInstance: DataBaseService) => {
+      if (get().db == null) set({ db: dbInstance });
     },
-}));
+
+    fetchSchedules: async () => {
+      try {
+        const db = get().db;
+        if (!db) return;
+
+        if (get().isLoading) return;
+
+        const todayStr = new Date().toDateString();
+
+        set({
+          isLoading: true,
+          dateLast: todayStr,
+        });
+
+        const date = getDayNumber();
+
+        const dataToDay = await db.getLessons(
+          date.toString(),
+          get().typeWeekToDay,
+        );
+        const schedulesToDay = transformDbToUiSchedule(dataToDay);
+        set({ schedulesToDay: schedulesToDay });
+        const dataNextDate = await db.getLessons(
+          (date + 1).toString(),
+          get().typeWeekNextDay,
+        );
+        const scheduleNextDay = transformDbToUiSchedule(dataNextDate);
+        set({ scheduleNextDay: scheduleNextDay });
+
+        const dataWeekly = await db.getLessonsWeek(get().typeWeekNextDay);
+        const schedulesWeekly = transformDbToUiSchedule(dataWeekly);
+        set({ scheduleWeekly: schedulesWeekly, isLoaded: true });
+      } catch (error) {
+        console.error("Ошибка загрузки расписания:", error);
+      } finally {
+        set({ isLoading: false });
+      }
+    },
+  };
+});

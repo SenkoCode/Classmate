@@ -3,8 +3,7 @@ import { Text } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dbService } from "../services/dataBaseServices";
 import LoadingPage from "../screens/LoadingPage";
-
-import { globalStyles } from "../style/style";
+import { useAppStore } from "../services/appStore";
 
 const DatabaseContext = createContext<typeof dbService | null>(null);
 
@@ -16,6 +15,9 @@ export const DatabaseProvider : React.FC<{ children : React.ReactNode}> = ({ chi
         const setupDatabase = async () => {
             try {
                 await dbService.initDB();
+
+                useAppStore.getState().setDbInstance(dbService);
+
                 setIsDbReady(true);
             }
             catch (e)
@@ -30,7 +32,7 @@ export const DatabaseProvider : React.FC<{ children : React.ReactNode}> = ({ chi
 
     if (error) {
     return (
-        <SafeAreaView style={globalStyles.container}>
+        <SafeAreaView style={{display : "flex"}}>
             <Text style={{ color: 'red', padding: 20 }}>Ошибка: {error}</Text>
         </SafeAreaView>
     );

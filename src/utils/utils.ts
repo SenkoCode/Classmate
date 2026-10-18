@@ -7,12 +7,9 @@ export const getDayNumber = ( ) => {
   return day === 0 ? 7 : day;
 };
 
-export const getTypeWeek = (dateInput?: string): WeekType => {
+export const getTypeWeek = (dateInput?: string | Date): WeekType => {
     const targetDate = dateInput ? new Date(dateInput) : new Date();
-  
-    if (targetDate.getDay() === 0) {
-        targetDate.setDate(targetDate.getDate() + 1);
-    }
+
     const anchorDate = new Date(2026, 0, 5, 0, 0, 0);
 
     const targetZeroTime = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
@@ -21,7 +18,7 @@ export const getTypeWeek = (dateInput?: string): WeekType => {
     const daysPassed = Math.floor((targetZeroTime.getTime() - anchorDate.getTime()) / msInDay);
 
     const weeksPassed = Math.floor(daysPassed / 7);
-
+    console.log((weeksPassed % 2 === 0) ? 'upper' : 'lower')
     return (weeksPassed % 2 === 0) ? 'upper' : 'lower';
 };
 

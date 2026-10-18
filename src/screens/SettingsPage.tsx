@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Text, Button } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { TouchableOpacity } from "react-native";
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 
 import { StyleSheet } from "react-native";
 
@@ -19,102 +19,129 @@ import { Settings } from "../types/models";
 import { useAppStore } from "../services/appStore";
 
 export default function SettingsPage() {
-    const navigation = useNavigation<any>();
-    const setIsShowLoadingPage = useAppStore((state) => state.setIsShowLoadingPage);
-    const checkFirstStart = useAppStore((state) => state.checkFirstStart);
-    const [getSettings, setSettings] = useState<Settings>();
+  const navigation = useNavigation<any>();
+  const setIsShowLoadingPage = useAppStore(
+    (state) => state.setIsShowLoadingPage,
+  );
+  const checkFirstStart = useAppStore((state) => state.checkFirstStart);
+  const [getSettings, setSettings] = useState<Settings>();
 
-    useEffect(() => {
-        const load = async () => {
-            const data = await loadAppSettings();
-            setSettings(data);
-        }
-        load();
-    }, [])
+  useEffect(() => {
+    const load = async () => {
+      const data = await loadAppSettings();
+      setSettings(data);
+    };
+    load();
+  }, []);
 
-    return (
-        <LinearGradient                 
-            colors={['#0f172a', '#4338ca']} // Ваши цвета из CSS (темно-синий и фиолетовый)
-            start={{ x: 0, y: 0 }}          // Верхний левый угол (аналог 148deg)
-            end={{ x: 1, y: 1 }}            // Правый нижний угол
-            style = {style.container}>
-            <SafeAreaView>
-                <Text style = {style.header}>Настройки</Text>
-                <TouchableOpacity style = {style.button} onPress = {() => {
-                     setIsShowLoadingPage(true);
-                    setTimeout(async () => {
-                        try {
-                            await updateSchedulesDatabase();
-                        } catch (error) {
-                            console.error("Ошибка обновления БД:", error);
-                        } finally {
-                            setIsShowLoadingPage(false);
-                        }
-                    }, 50);
-                }}>
-                    <Text style = {style.buttonText}>Обновить таблицу</Text>
-                    <Ionicons name="refresh" size={26} color="#fff"/>
-                </TouchableOpacity>
+  return (
+    <LinearGradient
+      colors={["#0f172a", "#4338ca"]} // Ваши цвета из CSS (темно-синий и фиолетовый)
+      start={{ x: 0, y: 0 }} // Верхний левый угол (аналог 148deg)
+      end={{ x: 1, y: 1 }} // Правый нижний угол
+      style={style.container}
+    >
+      <SafeAreaView style = {style.container}>
+        <Text style={style.header}>Настройки</Text>
+        <TouchableOpacity
+          style={style.button}
+          onPress={() => {
+            setIsShowLoadingPage(true);
+            setTimeout(async () => {
+              try {
+                await updateSchedulesDatabase();
+              } catch (error) {
+                console.error("Ошибка обновления БД:", error);
+              } finally {
+                setIsShowLoadingPage(false);
+              }
+            }, 50);
+          }}
+        >
+          <Text style={style.buttonText}>Обновить таблицу</Text>
+          <Ionicons name="refresh" size={26} color="#fff" />
+        </TouchableOpacity>
 
-                <TouchableOpacity style = {style.button} onPress = {() => {
-                    navigation.navigate("InputURLTablePage");    
-                }}>
-                    <Text style = {style.buttonText}>Изменить таблицу</Text>
-                    <Ionicons name="create" size={26} color="#fff"/>
-                </TouchableOpacity>
+        <TouchableOpacity
+          style={style.button}
+          onPress={() => {
+            navigation.navigate("InputURLTablePage");
+          }}
+        >
+          <Text style={style.buttonText}>Изменить таблицу</Text>
+          <Ionicons name="create" size={26} color="#fff" />
+        </TouchableOpacity>
 
-                <TouchableOpacity style = {style.button} onPress = {() => {
-                    navigation.navigate("SelectTypeWeek");
-                }}>
-                    <Text style = {style.buttonText}>Сменить тип недели</Text>
-                    <Ionicons name="swap-horizontal" size={26} color="#fff"/>
-                </TouchableOpacity>
+        <TouchableOpacity
+          style={style.button}
+          onPress={() => {
+            navigation.navigate("SelectTypeWeek");
+          }}
+        >
+          <Text style={style.buttonText}>Сменить тип недели</Text>
+          <Ionicons name="swap-horizontal" size={26} color="#fff" />
+        </TouchableOpacity>
 
-                <TouchableOpacity style = {style.button} onPress = {() => {
-                    saveAppSettigns("", new Date(), "");
-                    checkFirstStart();
-                }}>
-                    <Text style = {style.buttonText}>Измененить группу</Text>
-                    <Ionicons name="people" size={26} color="#fff"/>
-                </TouchableOpacity>
-            </SafeAreaView>
-        </LinearGradient>
-    )
+        <TouchableOpacity
+          style={style.button}
+          onPress={() => {
+            saveAppSettigns("", new Date(), "");
+            checkFirstStart();
+          }}
+        >
+          <Text style={style.buttonText}>Измененить группу</Text>
+          <Ionicons name="people" size={26} color="#fff" />
+        </TouchableOpacity>
+
+        {/* <TouchableOpacity style = {style.btnAuthor}>
+          <Text style = {style.textAuthor}>Авторы</Text>
+        </TouchableOpacity> */}
+      </SafeAreaView>
+    </LinearGradient>
+  );
 }
 
-const style = StyleSheet.create({ 
-    button: {
-        height: 52,
-        backgroundColor: '#6366F1',
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#6366F1',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 12,
-        elevation: 4,
-        marginHorizontal : 10,
-        marginVertical : 5,
+const style = StyleSheet.create({
+  button: {
+    height: 52,
+    backgroundColor: "#6366F1",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#6366F1",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
+    marginHorizontal: 10,
+    marginVertical: 5,
 
-        alignContent : 'center',
-        flexDirection : 'row',
-        gap: 8,
+    alignContent: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+  },
+  header: {
+    color: COLORS.text_primary,
+    fontWeight: "800",
+    marginHorizontal: 22,
+    fontSize: 23,
+    marginVertical: 20,
+  },
+  container: {
+      flex: 1,
     },
-    buttonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-        letterSpacing: 0.5,
-        },
-        header : {
-            color : COLORS.text_primary,
-            fontWeight : '800',
-            marginHorizontal : 22,
-            fontSize : 23,
-            marginVertical : 20
-        },
-        container : {
-            flex : 1
-        },
+    textAuthor : {
+      color : "#ffffff"
+    },
+    btnAuthor : {
+      alignItems : "center",
+      marginTop: "auto",
+      marginBottom: 5,
+    }
 });

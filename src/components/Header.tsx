@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { COLORS } from "../style/style";
 import { useNavigation } from '@react-navigation/native';
@@ -9,12 +9,8 @@ import { useAppStore } from "../services/appStore";
 export const Header = ( {text, typeWeek} : HeaderProps) => {
     const navigation = useNavigation<any>();
     const changedTypeWeek = useAppStore(state => state.isChangedTypeWeek);
-    const [getTypeWeek, setTypeWeek] = useState<string>();
 
-    useEffect(() => {
-        const result = changedTypeWeek ? typeWeek + " • Изменено" : typeWeek;
-        setTypeWeek(result);
-    }, [changedTypeWeek])
+    const displayTypeWeek = changedTypeWeek ? typeWeek + " • Изменено" : typeWeek;
 
     return (
     <View style = { style.header }>
@@ -22,7 +18,7 @@ export const Header = ( {text, typeWeek} : HeaderProps) => {
         <TouchableOpacity style={style.headerBtn} onPress={() => {
             navigation.navigate("SelectTypeWeek");
         }}>
-            <Text style = { style.headerTextTypeWeek }>{getTypeWeek}</Text>
+            <Text style = { style.headerTextTypeWeek }>{displayTypeWeek}</Text>
         </TouchableOpacity>
     </View>
     )
