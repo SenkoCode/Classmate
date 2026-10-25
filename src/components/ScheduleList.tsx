@@ -49,8 +49,8 @@ const LessonCard = memo(({ item, needTracking, index }: LessonsCardProps) => {
           <Text style={style.cardTextSubject}>{item.subject}</Text>
           <Text style={style.cardTextTeacher}>{item.teacher}</Text>
           <Text style={style.cardTextRoom}>{item.room}</Text>
-          {isActive && item.teacher ? <CustomProgressBar timeRange={item.time} /> : null}
           <Text style={style.cardTextTime}>{item.time}</Text>
+          {isActive && item.teacher ? <CustomProgressBar timeRange={item.time} /> : null}
         </View>
       </Animated.View>
     );
@@ -74,7 +74,6 @@ export const ScheduleList = memo(({ weekData, needTracking }: WeekScheduleListPr
           </View>
         )}
         
-        // 6. Передаем index из параметров renderItem прямо в карточку
         renderItem={({ item, index }) => (
           <LessonCard item={item} needTracking={needTracking} index={index} />
         )}

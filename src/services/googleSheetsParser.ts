@@ -104,7 +104,6 @@ async function getLessonsFromXlsx(letter: string) {
   const dataFromXlsx = await parseVerticalColumn(letter);
 
   const dataForDataBase: Omit<DataBaseScheduleItem, "id">[] = [];
-  console.log(dataFromXlsx);
   for (let i = 0; i < dataFromXlsx.length; i += 2) {
     const currentCell = dataFromXlsx[i];
     const nextCell = dataFromXlsx[i + 1];
@@ -150,8 +149,8 @@ async function getLessonsFromXlsx(letter: string) {
       });
     }
   }
-  dbService.clearDatabase();
-  dbService.insertLessions(dataForDataBase);
+  await dbService.clearDatabase();
+  await dbService.insertLessions(dataForDataBase);
 }
 
 function columnIndexToLetter(index: number): string {
@@ -209,7 +208,6 @@ export const findColumnLetterByValue = async (
         : cellStr.toLowerCase() === searchStr.toLowerCase();
     });
 
-    console.log(indexInSlice);
     if (indexInSlice === -1) {
       return null;
     }
@@ -218,7 +216,6 @@ export const findColumnLetterByValue = async (
     const columnLetter = columnIndexToLetter(globalIndex);
     return columnLetter;
   } catch (error) {
-    console.error("Ошибка поиска столбца:", error);
     return null;
   }
 };

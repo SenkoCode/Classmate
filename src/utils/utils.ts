@@ -18,7 +18,6 @@ export const getTypeWeek = (dateInput?: string | Date): WeekType => {
     const daysPassed = Math.floor((targetZeroTime.getTime() - anchorDate.getTime()) / msInDay);
 
     const weeksPassed = Math.floor(daysPassed / 7);
-    console.log((weeksPassed % 2 === 0) ? 'upper' : 'lower')
     return (weeksPassed % 2 === 0) ? 'upper' : 'lower';
 };
 

@@ -22,7 +22,6 @@ export const DatabaseProvider : React.FC<{ children : React.ReactNode}> = ({ chi
             }
             catch (e)
             {
-                console.log(e);
                 setError(String(e));
             }
         }

@@ -6,7 +6,10 @@ export default function Authors() {
     return (
         <SafeAreaView>
             <Text>
-
+                Разработчик: 
+                    SenkoCode
+                Тестировщики:
+                    
             </Text>
         </SafeAreaView>
     )

@@ -126,9 +126,7 @@ export class DataBaseService {
             "DELETE FROM sqlite_sequence WHERE name='lessons';",
           );
         });
-        console.log("База данных успешно полностью очищена!");
       } catch (error) {
-        console.error("Ошибка при очистке базы данных:", error);
         throw error;
       }
     });
