@@ -45,7 +45,7 @@ export const isCurrentSchedule = (time: string): boolean => {
     const now = new Date();
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
-    return (nowMinutes >= (timeStart - 15)) && (nowMinutes < timeEnd);
+    return (nowMinutes >= (timeStart)) && (nowMinutes < timeEnd);
 };
 
 
